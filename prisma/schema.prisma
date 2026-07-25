@@ -1,0 +1,33 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Team {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  country     String
+  foundedYear Int
+  createdAt   DateTime @default(now())
+
+  drivers Driver[]
+
+  @@map("teams")
+}
+
+model Driver {
+  id        String   @id @default(uuid())
+  name      String
+  country   String
+  carNumber Int      @unique
+  createdAt DateTime @default(now())
+
+  teamId String
+  team   Team   @relation(fields: [teamId], references: [id])
+
+  @@map("drivers")
+}
