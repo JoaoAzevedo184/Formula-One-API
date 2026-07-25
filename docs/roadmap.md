@@ -20,29 +20,33 @@ Prazo de entrega: **1 semana**. O desafio original da DIO é uma Minimal API ser
 - [x] `schema.prisma` com models `Team` e `Driver`
 - [x] Migration inicial criada e aplicada (`20260725192315_init`)
 - [x] Banco de produção provisionado no Neon (`sa-east-1`)
-- [ ] Aplicar o schema também no Postgres local (`migrate deploy` apontando para o Docker)
-- [ ] `src/lib/prisma.ts` com `PrismaClient` + `@prisma/adapter-pg`
-- [ ] `src/app.ts` e `src/server.ts` com `GET /health`
-- [ ] `npm run lint` passando limpo
+- [x] Aplicar o schema também no Postgres local (`migrate deploy` apontando para o Docker)
+- [x] `src/lib/prisma.ts` com `PrismaClient` + `@prisma/adapter-pg`
+- [x] `src/app.ts` e `src/server.ts` com `GET /health`
+- [x] `npm run lint` passando limpo
 
-> **Pendência de configuração:** o `.env.example` e a documentação citam o banco `formula_one`, mas o Neon provisionou `neondb`. Alinhar um dos dois.
+> **Pendência resolvida:** o `.env.example` agora documenta os dois ambientes — local via Docker (`api-formula-one` na porta 5434) e produção no Neon (`neondb`).
 
 ## Dia 2 — CRUD de Pilotos
 
-- [ ] Schemas Zod de `Driver` (create, update, params, response)
-- [ ] Repository de `Driver` (acesso via Prisma)
-- [ ] Service de `Driver` — **apenas se houver regra de negócio**; caso contrário o controller acessa o repository direto
-- [ ] Controller de `Driver`
-- [ ] Rotas: `GET /drivers`, `GET /drivers/:id`, `POST /drivers`, `PUT /drivers/:id`, `DELETE /drivers/:id`
-- [ ] Verificação manual dos cinco endpoints
+- [x] Schemas Zod de `Driver` (create, update, params, response)
+- [x] Repository de `Driver` (acesso via Prisma)
+- [x] Service de `Driver` — **não criado**: não há regra de negócio além das restrições do banco (unicidade de `carNumber`, FK de `teamId`); o controller acessa o repository direto
+- [x] Controller de `Driver`
+- [x] Rotas: `GET /drivers`, `GET /drivers/:id`, `POST /drivers`, `PUT /drivers/:id`, `DELETE /drivers/:id`
+- [x] Verificação manual dos cinco endpoints
+
+> **Nota:** a tradução dos erros do Prisma (`P2002`→409, `P2003`/`P2025`→404) está inline no controller por ora. O Dia 5 vai extrair isso para o error handler global e padronizar o formato de `issues[]` do Zod.
 
 ## Dia 3 — Testes de Pilotos
 
-- [ ] Configuração do Vitest
-- [ ] Helper de teste usando `app.inject()` (não usar supertest — o Fastify já traz o `inject` embutido)
-- [ ] Estratégia de isolamento do banco de teste definida
-- [ ] Testes de caminho feliz: listar, buscar, criar, atualizar, remover
-- [ ] Testes de erro: 404 em id inexistente, 400 em payload inválido, 409 em `carNumber` duplicado
+- [x] Configuração do Vitest (`vitest.config.ts`, `fileParallelism: false`)
+- [x] Helper de teste usando `app.inject()` (não usar supertest — o Fastify já traz o `inject` embutido)
+- [x] Estratégia de isolamento do banco de teste definida — banco dedicado `api-formula-one-test` (mesmo container Docker), migrations aplicadas uma vez em `globalSetup`, tabelas truncadas a cada `beforeEach`
+- [x] Testes de caminho feliz: listar, buscar, criar, atualizar, remover
+- [x] Testes de erro: 404 em id inexistente, 400 em payload inválido, 409 em `carNumber` duplicado
+
+> **Pré-requisito para rodar `npm test`:** `docker compose up -d` precisa estar de pé — os testes criam e migram o banco `api-formula-one-test` automaticamente na primeira execução.
 
 ## Dia 4 — CRUD de Equipes
 
