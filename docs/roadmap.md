@@ -50,27 +50,41 @@ Prazo de entrega: **1 semana**. O desafio original da DIO é uma Minimal API ser
 
 ## Dia 4 — CRUD de Equipes
 
-- [ ] Schemas Zod de `Team`
-- [ ] Repository, controller e rotas de `Team`
-- [ ] Relação `Driver` → `Team` funcionando (incluir pilotos ao buscar equipe)
-- [ ] Testes de `Team`
-- [ ] **Decidir:** `DELETE /teams/:id` com pilotos associados → bloquear (409) ou cascatear? Registrar em ADR 0002
+- [x] Schemas Zod de `Team`
+- [x] Repository, controller e rotas de `Team`
+- [x] Relação `Driver` → `Team` funcionando (incluir pilotos ao buscar equipe)
+- [x] Testes de `Team`
+- [x] **Decidir:** `DELETE /teams/:id` com pilotos associados → bloquear (409) ou cascatear? Registrar em ADR 0002
+
+> **Decisão registrada:** bloquear a remoção (`409`) quando a equipe possui pilotos associados — ver `docs/adr/0002-remocao-de-equipe.md`.
 
 ## Dia 5 — Erros e Documentação
 
-- [ ] Error handler global com formato de resposta consistente
-- [ ] Tradução dos erros do Zod para o formato `issues[]`
-- [ ] Mapeamento dos erros do Prisma (ex.: `P2002` → 409, `P2025` → 404)
-- [ ] Swagger em `/docs` gerado a partir dos schemas Zod
-- [ ] Registro dos plugins de segurança: helmet, cors, rate-limit
-- [ ] Revisar `docs/api-contract.md` contra o comportamento real
+- [x] Error handler global com formato de resposta consistente
+- [x] Tradução dos erros do Zod para o formato `issues[]`
+- [x] Mapeamento dos erros do Prisma (ex.: `P2002` → 409, `P2025` → 404)
+- [x] Swagger em `/docs` gerado a partir dos schemas Zod
+- [x] Registro dos plugins de segurança: helmet, cors, rate-limit
+- [x] Revisar `docs/api-contract.md` contra o comportamento real
+
+> **Nota:** os controllers de `Driver` e `Team` não têm mais `try/catch` de erros do Prisma — tudo bubbleia para `src/plugins/error-handler.ts`, que também traduz os erros de validação do Zod (via `hasZodFastifySchemaValidationErrors`) para `issues[]`. `P2003` foi remapeado para `404` (era `409` no rascunho original do contrato) porque, na prática, o único caso em que ele ocorre é FK inexistente na criação/atualização — `docs/api-contract.md` foi atualizado para refletir isso.
+>
+> **Cuidado ao registrar plugins de hook (`security.ts`, `swagger.ts`) e o error handler:** eles precisam ser chamados diretamente em `buildApp` (sem `app.register(...)`), porque `app.register` cria um contexto encapsulado e o `onRoute` hook do Swagger (e os hooks do rate-limit) não enxergariam as rotas de `drivers`/`teams`, registradas como filhas irmãs na raiz — isso zerava `paths` no `/docs/json` até ser corrigido.
 
 ## Dia 6 — Docker e CI
 
-- [ ] `Dockerfile` multi-stage (atenção: `prisma generate` **antes** do `tsc`, pois `src/generated/` não é versionado)
-- [ ] `docker-compose.yml` subindo API + banco juntos
-- [ ] GitHub Actions: `npm ci` → `lint` → `test` → `build`
-- [ ] Badge do CI no README
+- [x] `Dockerfile` multi-stage (atenção: `prisma generate` **antes** do `tsc`, pois `src/generated/` não é versionado)
+- [x] `docker-compose.yml` subindo API + banco juntos
+- [x] GitHub Actions: `npm ci` → `lint` → `test` → `build`
+- [x] Badge do CI no README
+
+> **Bug real encontrado e corrigido:** `npm run build && npm start` estava quebrado desde o Dia 1 — o `tsc` não copia os `.js` já gerados pelo `prisma generate` em `src/generated/prisma` (só compila `.ts`), então `dist/generated` nunca existia e o server crashava com `MODULE_NOT_FOUND` ao importar o client do Prisma. Corrigido com um script `postbuild` (`copy:prisma`) que copia `src/generated` → `dist/generated` depois do `tsc`.
+>
+> **`dotenv` promovido a dependência direta:** `src/lib/prisma.ts` importa `dotenv/config`, mas o pacote só existia como dependência transitiva (hoisted por acaso). Funcionava localmente, mas era frágil sob `npm ci` num ambiente diferente (Docker, CI). Adicionado explicitamente em `package.json`.
+>
+> **Prisma 7 exige `prisma.config.ts` também em runtime:** `prisma migrate deploy` no container de produção falhava porque o `Dockerfile` copiava `dist/` e `prisma/` do estágio de build, mas não `prisma.config.ts` (raiz do projeto) — sem ele, o Prisma não sabe resolver `DATABASE_URL`/`DIRECT_URL` (o schema não tem `url` hardcoded, só o driver adapter). Corrigido copiando o arquivo também para o estágio final.
+>
+> **Estágio de build do Docker precisa de `DATABASE_URL`/`DIRECT_URL` fictícias:** `prisma generate` carrega `prisma.config.ts`, que valida a presença dessas variáveis mesmo sem abrir conexão — sem elas o build falhava. Valores fictícios (`ENV` no `Dockerfile`) resolvem, já que `generate` não conecta de fato ao banco.
 
 ## Dia 7 — Deploy e Acabamento
 

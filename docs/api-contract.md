@@ -234,7 +234,7 @@ Campos opcionais.
 | `404` | Equipe inexistente |
 | `409` | Equipe possui pilotos associados |
 
-> **Decisão pendente (Dia 4):** bloquear a remoção quando houver pilotos (`409`) ou remover em cascata. A recomendação é **bloquear** — é o comportamento mais seguro e mais fiel ao domínio, já que uma equipe não desaparece sem que seus pilotos sejam realocados. Registrar em `docs/adr/0002-remocao-de-equipe.md`.
+> A remoção é **bloqueada** quando a equipe possui pilotos associados — ver `docs/adr/0002-remocao-de-equipe.md`.
 
 ---
 
@@ -276,7 +276,7 @@ O handler traduz erros do Prisma para status HTTP:
 | Código Prisma | Significado | Status |
 |---|---|---|
 | `P2002` | Violação de restrição única | `409` |
-| `P2003` | Violação de chave estrangeira | `409` |
+| `P2003` | Violação de chave estrangeira (recurso relacionado não existe) | `404` |
 | `P2025` | Registro não encontrado | `404` |
 
 Erros não mapeados viram `500`, com a mensagem interna registrada no log e **não** exposta na resposta.

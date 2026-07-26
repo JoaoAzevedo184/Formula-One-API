@@ -2,7 +2,7 @@
 
 API REST para gerenciamento de pilotos e equipes da Fórmula 1, construída com Node.js, Fastify e TypeScript. Projeto desenvolvido como desafio da DIO, evoluído para servir como peça de portfólio demonstrando boas práticas de back-end.
 
-[![CI](https://github.com/JoaoAzevedo184/formula-one-api/actions/workflows/ci.yml/badge.svg)](https://github.com/JoaoAzevedo184/formula-one-api/actions)
+[![CI](https://github.com/JoaoAzevedo184/formula-one-api/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/JoaoAzevedo184/formula-one-api/actions)
 
 > **Demo online:** [formula-one-api.onrender.com](https://formula-one-api.onrender.com) · **Docs (Swagger):** [/docs](https://formula-one-api.onrender.com/docs)
 >
@@ -103,6 +103,10 @@ npm run dev
 ```
 
 A API sobe em `http://localhost:3333` e o Swagger em `http://localhost:3333/docs`.
+
+### Alternativa: tudo via Docker Compose
+
+`docker compose up -d --build` sobe a API **e** o banco juntos, sem precisar de Node instalado na máquina. O container da API aplica as migrations (`prisma migrate deploy`) automaticamente antes de iniciar o servidor.
 
 ### Scripts disponíveis
 
