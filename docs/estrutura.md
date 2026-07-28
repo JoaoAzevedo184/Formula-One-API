@@ -15,7 +15,7 @@ Formula-One-API/
 ├── docs/
 │   ├── adr/
 │   │   ├── 0001-stack-e-arquitetura.md
-│   │   └── 0002-remocao-de-equipe.md      # a criar (Dia 4)
+│   │   └── 0002-remocao-de-equipe.md
 │   ├── api-contract.md            # Contrato dos endpoints
 │   ├── deploy.md                  # Procedimento de deploy (Neon + Render)
 │   ├── estrutura.md               # Este arquivo
@@ -26,7 +26,7 @@ Formula-One-API/
 │   │   └── 20260725192315_init/
 │   │       └── migration.sql
 │   ├── schema.prisma              # Models (sem `url` — Prisma 7)
-│   └── seed.ts                    # a criar (Dia 7)
+│   └── seed.ts                    # dados reais de F1 (idempotente, via upsert)
 │
 ├── src/
 │   ├── config/                    # Env validado (Zod) + constantes da aplicação
