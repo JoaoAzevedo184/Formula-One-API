@@ -2,47 +2,59 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: ['**']
   pull_request:
     branches: [main]
 
+# Um push novo no mesmo branch cancela a execucao anterior
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   ci:
+    name: Lint, testes e build
     runs-on: ubuntu-latest
 
+    # Os testes precisam de um PostgreSQL real.
+    # A porta 5434 espelha o docker-compose local, para que a
+    # connection string seja a mesma nos dois ambientes.
     services:
       postgres:
         image: postgres:17-alpine
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: postgres
+          POSTGRES_DB: api-formula-one
         ports:
           - 5434:5432
         options: >-
-          --health-cmd="pg_isready -U postgres"
-          --health-interval=5s
-          --health-timeout=5s
-          --health-retries=10
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5434/api-formula-one-test?schema=public
+      DIRECT_URL: postgresql://postgres:postgres@localhost:5434/api-formula-one-test?schema=public
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Configurar Node.js
+      - name: Configurar Node
         uses: actions/setup-node@v4
         with:
-          node-version: "22"
-          cache: "npm"
+          node-version: '22.12'
+          cache: npm
 
-      - name: Instalar dependências
+      - name: Instalar dependencias
         run: npm ci
 
+      # Obrigatorio antes de qualquer coisa que compile ou importe o client:
+      # src/generated/ nao e versionado
       - name: Gerar client do Prisma
         run: npx prisma generate
-        env:
-          DATABASE_URL: "postgresql://postgres:postgres@localhost:5434/api-formula-one-test"
-          DIRECT_URL: "postgresql://postgres:postgres@localhost:5434/api-formula-one-test"
 
       - name: Lint
         run: npm run lint

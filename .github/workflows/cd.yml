@@ -1,0 +1,39 @@
+name: CD
+
+# Dispara quando o workflow "CI" termina na branch main.
+# Requisitos do gatilho workflow_run:
+#   - o nome em `workflows` precisa bater com o `name:` do ci.yml
+#   - este arquivo precisa existir na branch padrao para o gatilho funcionar
+on:
+  workflow_run:
+    workflows: ['CI']
+    types: [completed]
+    branches: [main]
+  # Permite disparar um deploy manualmente pela aba Actions
+  workflow_dispatch:
+
+# Nunca executar dois deploys ao mesmo tempo, e nao cancelar
+# um deploy em andamento pela metade
+concurrency:
+  group: cd-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy no Render
+    runs-on: ubuntu-latest
+
+    # OBRIGATORIO: o gatilho `completed` dispara tambem quando o CI FALHA.
+    # Sem esta guarda, codigo quebrado vai para producao.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
+
+    steps:
+      - name: Disparar deploy via deploy hook
+        run: |
+          curl --fail --silent --show-error --location \
+            --request POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
+
+      - name: Resumo
+        run: echo "Deploy disparado. Acompanhe os logs no dashboard do Render." >> $GITHUB_STEP_SUMMARY
