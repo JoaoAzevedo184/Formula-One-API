@@ -12,6 +12,7 @@ interface ErrorResponse {
 
 function prismaErrorResponse(
   error: Prisma.PrismaClientKnownRequestError,
+  method: string,
 ): ErrorResponse | null {
   if (error.code === "P2002") {
     const target = error.meta?.target;
@@ -23,7 +24,22 @@ function prismaErrorResponse(
     };
   }
 
+  // P2003 (violação de chave estrangeira) tem dois significados opostos,
+  // distinguidos pelo método HTTP: numa remoção, o recurso possui dependentes;
+  // numa criação ou atualização, a referência informada não existe.
+  //
+  // O caso do DELETE cobre a condição de corrida descrita em
+  // docs/adr/0002-remocao-de-equipe.md: entre a checagem prévia do controller
+  // e a remoção, outra requisição pode criar um registro dependente.
   if (error.code === "P2003") {
+    if (method === "DELETE") {
+      return {
+        statusCode: 409,
+        error: "Conflict",
+        message: "Recurso possui registros associados e não pode ser removido",
+      };
+    }
+
     return {
       statusCode: 404,
       error: "Not Found",
@@ -51,7 +67,9 @@ export function registerErrorHandler(app: FastifyInstance): void {
   app.setErrorHandler((error: FastifyError, request, reply) => {
     if (hasZodFastifySchemaValidationErrors(error)) {
       const issues = error.validation!.map((issue) => ({
-        path: issue.instancePath.replace(/^\//, ""),
+        // instancePath usa barra como separador ("/equipe/pais").
+        // Convertido para notação de ponto, mais familiar em JSON.
+        path: issue.instancePath.replace(/^\//, "").replace(/\//g, "."),
         message: issue.message ?? "Valor inválido",
       }));
 
@@ -64,7 +82,7 @@ export function registerErrorHandler(app: FastifyInstance): void {
     }
 
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      const mapped = prismaErrorResponse(error);
+      const mapped = prismaErrorResponse(error, request.method);
       if (mapped) {
         return reply.code(mapped.statusCode).send(mapped);
       }
