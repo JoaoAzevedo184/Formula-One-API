@@ -1,142 +1,304 @@
 # 🏎️ Formula One API
 
-API REST para gerenciamento de pilotos e equipes da Fórmula 1, construída com Node.js, Fastify e TypeScript. Projeto desenvolvido como desafio da DIO, evoluído para servir como peça de portfólio demonstrando boas práticas de back-end.
+API REST para gerenciamento de **pilotos** e **equipes da Fórmula 1**, desenvolvida com **Node.js, Fastify, TypeScript e Prisma ORM**.
+
+O projeto nasceu como um desafio da **Digital Innovation One (DIO)** e foi evoluído para servir como peça de portfólio, aplicando boas práticas de desenvolvimento back-end, arquitetura em camadas, documentação automática, testes e deploy em produção.
 
 [![CI](https://github.com/JoaoAzevedo184/formula-one-api/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/JoaoAzevedo184/formula-one-api/actions)
-
-> **Demo online:** [formula-one-api.onrender.com](https://formula-one-api.onrender.com) · **Docs (Swagger):** [/docs](https://formula-one-api.onrender.com/docs)
->
-> ⚠️ O serviço está hospedado no plano gratuito do Render + Neon. Após período de inatividade, a primeira requisição pode levar até ~1 minuto (cold start do servidor e do banco). Basta aguardar e recarregar.
+![Node.js](https://img.shields.io/badge/Node.js-22-339933?logo=node.js)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript)
+![Fastify](https://img.shields.io/badge/Fastify-5-black?logo=fastify)
+![Prisma](https://img.shields.io/badge/Prisma-ORM-2D3748?logo=prisma)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Neon-4169E1?logo=postgresql)
+![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker)
 
 ---
 
-## Tecnologias
+## 🌐 Demonstração
 
-| Camada | Escolha | Motivo |
-|---|---|---|
-| Runtime | Node.js 22 LTS | Estável, amplamente suportado |
-| Linguagem | TypeScript | Tipagem estática, segurança em refactors |
-| Framework | Fastify | Alta performance, schema-first, ecossistema de plugins |
-| Validação | Zod + `fastify-type-provider-zod` | Um schema serve para validação, tipos e Swagger |
-| ORM | Prisma | DX excelente, migrations versionadas, type-safe |
-| Banco | PostgreSQL | Relacional, padrão de mercado |
-| Docs | Swagger (`@fastify/swagger` + UI) | Gerado a partir dos schemas Zod |
-| Testes | Vitest | Rápido, API compatível com Jest, nativo em TS/ESM |
-| Container | Docker + Docker Compose | Ambiente reproduzível |
-| CI | GitHub Actions | Lint + testes a cada push |
+| Serviço      | URL                                                                                        |
+| ------------ | ------------------------------------------------------------------------------------------ |
+| API          | [https://formula-one-api.onrender.com](https://formula-one-api.onrender.com)               |
+| Swagger      | [https://formula-one-api.onrender.com/docs](https://formula-one-api.onrender.com/docs)     |
+| Health Check | [https://formula-one-api.onrender.com/health](https://formula-one-api.onrender.com/health) |
 
-## Arquitetura
+> ⚠️ O projeto utiliza o plano gratuito do **Render** e do **Neon**. Após alguns minutos sem uso, ambos entram em modo de hibernação (*cold start*). A primeira requisição pode levar até cerca de **1 minuto**. Basta aguardar e tentar novamente.
 
-A aplicação segue uma separação em camadas, mas **sem criar camadas vazias**: um service só existe quando há regra de negócio real; caso contrário o controller conversa direto com o repository.
+---
+
+# ✨ Funcionalidades
+
+### Pilotos (`/drivers`)
+
+* Listar pilotos
+* Buscar piloto por ID
+* Cadastrar piloto
+* Atualizar piloto
+* Remover piloto
+
+### Equipes (`/teams`)
+
+* Listar equipes
+* Buscar equipe por ID
+* Cadastrar equipe
+* Atualizar equipe
+* Remover equipe
+
+Relacionamento:
 
 ```
-Request → Route (schema Zod) → Controller → Service → Repository → Prisma → PostgreSQL
+Team
+ │
+ ├── Driver
+ ├── Driver
+ ├── Driver
+ └── Driver
 ```
+
+Cada piloto pertence a uma equipe (`Driver.teamId → Team.id`).
+
+---
+
+# 🛠 Tecnologias
+
+| Camada          | Tecnologia        |
+| --------------- | ----------------- |
+| Runtime         | Node.js 22        |
+| Linguagem       | TypeScript        |
+| Framework       | Fastify           |
+| ORM             | Prisma ORM        |
+| Banco de dados  | PostgreSQL (Neon) |
+| Validação       | Zod               |
+| Documentação    | Swagger/OpenAPI   |
+| Testes          | Vitest            |
+| Containerização | Docker            |
+| CI/CD           | GitHub Actions    |
+| Deploy          | Render            |
+
+---
+
+# 🏗 Arquitetura
+
+O projeto segue uma arquitetura em camadas, porém sem criar abstrações desnecessárias.
+
+```
+Cliente
+    │
+    ▼
+Routes
+    │
+    ▼
+Controllers
+    │
+    ▼
+Services
+    │
+    ▼
+Repositories
+    │
+    ▼
+Prisma ORM
+    │
+    ▼
+PostgreSQL
+```
+
+Estrutura:
 
 ```
 src
-├── routes/         # Registro de rotas + binding dos schemas Zod
-├── controllers/    # Recebe req/reply, orquestra, responde
-├── services/       # Regra de negócio (apenas onde existe regra)
-├── repositories/   # Acesso a dados via Prisma
-├── schemas/        # Schemas Zod (fonte única de verdade)
-├── plugins/        # error-handler, swagger, prisma (encapsulados)
-├── lib/            # Utilitários
-└── app.ts          # Composição da aplicação (build da instância Fastify)
+├── app.ts
+├── server.ts
+│
+├── controllers/
+├── repositories/
+├── routes/
+├── schemas/
+├── services/
+├── plugins/
+├── lib/
+│
 prisma/
-└── schema.prisma
 tests/
+docs/
 ```
 
-Decisões de arquitetura documentadas em [`docs/adr/`](./docs/adr).
+As principais decisões arquiteturais encontram-se documentadas em:
 
-## Funcionalidades
+```
+docs/adr/
+```
 
-**Pilotos (`/drivers`)**
-- ✔ Listar pilotos
-- ✔ Buscar piloto por id
-- ✔ Cadastrar piloto
-- ✔ Atualizar piloto
-- ✔ Remover piloto
+---
 
-**Equipes (`/teams`)**
-- ✔ Listar equipes
-- ✔ Buscar equipe por id
-- ✔ Cadastrar equipe
-- ✔ Atualizar equipe
-- ✔ Remover equipe
+# 🚀 Executando o projeto
 
-Relação: um piloto pertence a uma equipe (`Driver.teamId → Team.id`).
+## Pré-requisitos
 
-Documentação interativa completa disponível em `/docs` (Swagger UI).
+* Node.js 22+
+* Docker
+* Docker Compose
 
-## Como executar
-
-### Pré-requisitos
-- Node.js 22+
-- Docker e Docker Compose (para o Postgres local)
-
-### Passo a passo
+## Instalação
 
 ```bash
-# 1. Clonar
-git clone https://github.com/JoaoAzevedo184/formula-one-api.git
-cd formula-one-api
+git clone https://github.com/JoaoAzevedo184/Formula-One-API.git
 
-# 2. Instalar dependências
+cd Formula-One-API
+
 npm install
 
-# 3. Configurar variáveis de ambiente
 cp .env.example .env
 
-# 4. Subir o banco (PostgreSQL via Docker)
 docker compose up -d
 
-# 5. Aplicar migrations
 npx prisma migrate dev
 
-# 6. (Opcional) Popular com dados de exemplo
 npm run seed
 
-# 7. Rodar em modo desenvolvimento
 npm run dev
 ```
 
-A API sobe em `http://localhost:3333` e o Swagger em `http://localhost:3333/docs`.
+Aplicação:
 
-### Alternativa: tudo via Docker Compose
+```
+http://localhost:3333
+```
 
-`docker compose up -d --build` sobe a API **e** o banco juntos, sem precisar de Node instalado na máquina. O container da API aplica as migrations (`prisma migrate deploy`) automaticamente antes de iniciar o servidor.
+Swagger:
 
-### Scripts disponíveis
+```
+http://localhost:3333/docs
+```
 
-| Script | Ação |
-|---|---|
-| `npm run dev` | Servidor com hot reload |
-| `npm run build` | Compila TypeScript para `dist/` |
-| `npm start` | Executa a versão compilada |
-| `npm test` | Roda os testes (Vitest) |
-| `npm run test:watch` | Testes em watch mode |
-| `npm run lint` | ESLint |
-| `npm run seed` | Popula o banco com dados de exemplo |
+---
 
-## Testes
+# 🐳 Docker
+
+Também é possível executar tudo utilizando Docker.
+
+```bash
+docker compose up --build
+```
+
+O container aplica automaticamente:
+
+* Prisma Generate
+* Prisma Migrate Deploy
+
+antes de iniciar a aplicação.
+
+---
+
+# 📜 Scripts
+
+| Script             | Descrição                     |
+| ------------------ | ----------------------------- |
+| npm run dev        | Ambiente de desenvolvimento   |
+| npm run build      | Compila TypeScript            |
+| npm start          | Executa a aplicação compilada |
+| npm test           | Executa os testes             |
+| npm run test:watch | Testes em modo watch          |
+| npm run lint       | ESLint                        |
+| npm run format     | Prettier                      |
+| npm run seed       | Popula o banco                |
+
+---
+
+# 🧪 Testes
+
+Para executar:
 
 ```bash
 npm test
 ```
 
-Cobertura de testes de integração para os fluxos de CRUD de pilotos e equipes (listar, criar, atualizar, remover), incluindo casos de erro (404, 400 com payload inválido).
+São testados os principais fluxos de CRUD:
 
-## Deploy
+* criação
+* listagem
+* atualização
+* remoção
+* payload inválido
+* recurso inexistente (404)
 
-| Componente | Serviço | Plano |
-|---|---|---|
-| Web service | Render | Free (hiberna após 15 min) |
-| Banco | Neon | Free permanente (scale-to-zero) |
+---
 
-Variáveis necessárias em produção: `DATABASE_URL` (connection string do Neon), `PORT` (fornecida pelo Render).
+# 🚀 Deploy
 
-## Licença
+## Produção
 
-MIT
+| Serviço | Plataforma     |
+| ------- | -------------- |
+| API     | Render         |
+| Banco   | Neon           |
+| CI      | GitHub Actions |
+
+Variáveis necessárias:
+
+```env
+DATABASE_URL=
+DIRECT_URL=
+NODE_ENV=production
+```
+
+O container executa automaticamente:
+
+```bash
+npx prisma migrate deploy
+```
+
+antes de iniciar a aplicação.
+
+---
+
+# 📈 Qualidade do projeto
+
+✔ TypeScript
+
+✔ Fastify
+
+✔ Prisma ORM
+
+✔ PostgreSQL
+
+✔ Docker
+
+✔ GitHub Actions
+
+✔ Swagger
+
+✔ Validação com Zod
+
+✔ Testes automatizados
+
+✔ Migrations
+
+✔ Seed
+
+✔ Deploy em produção
+
+✔ Arquitetura em camadas
+
+---
+
+# 📌 Roadmap
+
+* [x] CRUD de pilotos
+* [x] CRUD de equipes
+* [x] Relacionamento entre entidades
+* [x] Swagger
+* [x] Docker
+* [x] CI/CD
+* [x] Deploy em produção
+* [ ] Autenticação JWT
+* [ ] Paginação
+* [ ] Filtros
+* [ ] Cache com Redis
+* [ ] Observabilidade (OpenTelemetry)
+
+---
+
+# 📄 Licença
+
+Distribuído sob a licença **MIT**.
