@@ -274,9 +274,11 @@ O array `issues` aparece **somente** em erros de validação (`400`). Nos demais
 O handler traduz erros do Prisma para status HTTP:
 
 | Código Prisma | Significado | Status |
+| Código Prisma | Significado | Status |
 |---|---|---|
 | `P2002` | Violação de restrição única | `409` |
-| `P2003` | Violação de chave estrangeira (recurso relacionado não existe) | `404` |
+| `P2003` | Violação de chave estrangeira em `DELETE` (recurso possui dependentes) | `409` |
+| `P2003` | Violação de chave estrangeira em `POST`/`PUT` (referência inexistente) | `404` |
 | `P2025` | Registro não encontrado | `404` |
 
 Erros não mapeados viram `500`, com a mensagem interna registrada no log e **não** exposta na resposta.

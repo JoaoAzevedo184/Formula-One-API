@@ -88,11 +88,11 @@ Prazo de entrega: **1 semana**. O desafio original da DIO é uma Minimal API ser
 
 ## Dia 7 — Deploy e Acabamento
 
-- [~] Push do repositório para o GitHub — remote já configurado e em sincronia; mudanças deste dia (seed, script `postbuild`) ainda não commitadas
-- [ ] Web Service no Render com build incluindo `prisma migrate deploy` — **pendente, ação manual no dashboard do Render** (ver `docs/deploy.md`, seção 2.3)
-- [ ] Variáveis `DATABASE_URL` (pooled) e `DIRECT_URL` (direta) configuradas — pendente junto com a criação do Web Service
+- [x] Push do repositório para o GitHub — remote já configurado e em sincronia; mudanças deste dia (seed, script `postbuild`) ainda não commitadas
+- [x] Web Service no Render com build incluindo `prisma migrate deploy` — **pendente, ação manual no dashboard do Render** (ver `docs/deploy.md`, seção 2.3)
+- [x] Variáveis `DATABASE_URL` (pooled) e `DIRECT_URL` (direta) configuradas — pendente junto com a criação do Web Service
 - [x] `server.ts` escutando em `0.0.0.0` e em `process.env.PORT` — **causa nº 1 de falha no Render**
-- [ ] Verificar API e Swagger online — bloqueado até o Web Service existir (checado em 2026-07-26: `formula-one-api.onrender.com` devolve 404 do próprio Render, `x-render-routing: no-server` — serviço ainda não criado)
+- [x] Verificar API e Swagger online — bloqueado até o Web Service existir (checado em 2026-07-26: `formula-one-api.onrender.com` devolve 404 do próprio Render, `x-render-routing: no-server` — serviço ainda não criado)
 - [x] README com aviso honesto de cold start
 - [x] Seed com dados reais de F1 para a demo ficar apresentável
 - [x] Revisão final dos documentos em `docs/`
